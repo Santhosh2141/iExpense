@@ -16,6 +16,12 @@ class User : ObservableObject{
     @Published var firstName = "Jake"
     @Published var lastName = "Peralta"
 }
+
+struct Person : Codable {
+    let firstName: String
+    let lastName: String
+}
+
 struct SecondView: View {
     
     let name: String
@@ -44,6 +50,8 @@ struct ContentView: View {
     //    This works like @State: when the value changes, it will reinvoked the body property so our UI reflects the new data.
     //    right now at least @AppStorage doesn’t make it easy to handle storing complex objects such as Swift structs
     
+    @State private var person = Person(firstName: "Ed", lastName: "Sheeran")
+    
     var body: some View {
         NavigationStack{
             VStack {
@@ -58,7 +66,18 @@ struct ContentView: View {
                 }
                 .sheet(isPresented: $showingSheet){
                     SecondView(name: user.firstName)
+                    
                 }
+                // archiving data is done using JSONEncoder()
+                // dearchiving data using JSONDecoder()
+                Button("Save User") {
+                    let encoder = JSONEncoder()
+
+                    if let data = try? encoder.encode(person) {
+                        UserDefaults.standard.set(data, forKey: "PersonData")
+                    }
+                }
+                
                 List{
                     ForEach(num, id: \.self){
                         Text("Row \($0)")
