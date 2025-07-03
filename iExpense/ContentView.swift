@@ -44,6 +44,7 @@ struct ExpenseItem : Identifiable, Codable{
     let name: String
     let type: String
     let amount: Double
+    let currency: String
 }
 
 class Expenses: ObservableObject{
@@ -65,6 +66,12 @@ class Expenses: ObservableObject{
         }
         items = []
     }
+    var personalItems: [ExpenseItem] {
+      items.filter { $0.type == "Personal"}
+    }
+    var businessItems: [ExpenseItem] {
+      items.filter { $0.type == "Business"}
+    }
 }
 
 struct ContentView: View {
@@ -85,23 +92,50 @@ struct ContentView: View {
     
     @StateObject private var expenses = Expenses()
     @State private var showSheet = false
-    
+    let types = ["Business", "Personal"]
     var body: some View {
         NavigationStack{
             List{
-                ForEach(expenses.items, id: \.id){ item in
-                    HStack {
-                            VStack(alignment: .leading) {
-                                Text(item.name)
-                                    .font(.headline)
-                                Text(item.type)
-                            }
+                Section("Personal"){
+                    ForEach(expenses.items.filter{
+                        $0.type == "Personal"
+                    }, id: \.id){ item in
+                        HStack {
+                                VStack(alignment: .leading) {
+                                    Text(item.name)
+                                        .font(.headline)
+                                    Text(item.type)
+                                }
 
-                            Spacer()
-                            Text(item.amount, format: .currency(code: "INR"))
-                        }
+                                Spacer()
+                            Text(item.amount, format: .currency(code: item.currency))
+                                .bold()
+                                
+                            }
+                        .foregroundColor(
+                            item.amount >= 100 ? .red : item.amount <= 10 ? .green : .blue)
+                    }
+                    .onDelete(perform: removePersonalItems)
                 }
-                .onDelete(perform: removeItems)
+                Section("Business"){
+                    ForEach(expenses.businessItems, id: \.id){ item in
+                        HStack {
+                                VStack(alignment: .leading) {
+                                    Text(item.name)
+                                        .font(.headline)
+                                    Text(item.type)
+                                }
+
+                                Spacer()
+                            Text(item.amount, format: .currency(code: item.currency))
+                                .bold()
+                                
+                            }
+                        .foregroundColor(
+                            item.amount >= 100 ? .red : item.amount <= 10 ? .green : .blue)
+                    }
+                    .onDelete(perform: removeBusinessItems)
+                }
             }
             .navigationTitle("iExpense")
             .toolbar{
@@ -120,8 +154,36 @@ struct ContentView: View {
         }
     }
     
-    func removeItems(at offsets: IndexSet){
-        expenses.items.remove(atOffsets: offsets)
+    func removePersonalItems(at offsets: IndexSet){
+        /*
+         what we are doing here is
+         offsets is a set of indices when we click delete.
+         the indices are iterated over.
+         were assigning the index to
+         the first occurance where the items ID is equal to the deletedItem ID
+         eg:
+         [PI1,BI1,PI2,PI3]      PI2 to delete
+         so take the Array has the deleted item at index 2.
+         personalItems[offset] will be PI2 in the personalItem array
+         we take that id and find the first occurance of the id in the expenseItems array.
+         here the first occ is at index 2.
+         so index is assigned as 2
+         and the 2nd element is removed.
+        */
+        for offset in offsets{
+                if let index = expenses.items.firstIndex(where:{ $0.id == expenses.personalItems[offset].id
+            }) {
+                expenses.items.remove(at: index)
+            }
+        }
+    }
+    func removeBusinessItems(at offsets: IndexSet){
+        for offset in offsets{
+                if let index = expenses.items.firstIndex(where:{ $0.id == expenses.businessItems[offset].id
+            }) {
+                expenses.items.remove(at: index)
+            }
+        }
     }
 //        NavigationStack{
 //            VStack {
