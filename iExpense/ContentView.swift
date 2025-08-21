@@ -139,17 +139,25 @@ struct ContentView: View {
             }
             .navigationTitle("iExpense")
             .toolbar{
-                Button{
+//                Button{
 //                    let expense = ExpenseItem(name: "Test", type: "Personal", amount: 5)
 //                    expenses.items.append(expense)
-                    showSheet.toggle()
-                } label: {
-                    Label("Add Item", systemImage: "plus")
-                    
-                }
-                .sheet(isPresented: $showSheet){
-                    AddView(expenses: expenses)
-                }
+//                    showSheet.toggle()
+                    NavigationLink{
+                        AddView(expenses: expenses)
+                    } label: {
+                        HStack{
+                            Image(systemName: "plus")
+                            Text("Add an Expense")
+                        }
+                    }
+//                } label: {
+//                    Label("Add Item", systemImage: "plus")
+//
+//                }
+//                .sheet(isPresented: $showSheet){
+//                    AddView(expenses: expenses)
+//                }
             }
         }
     }
